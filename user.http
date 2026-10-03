@@ -1,0 +1,32 @@
+@URL = http://localhost:5000
+
+### Create one product
+POST {{URL}}/products
+Content-Type: application/json
+
+{
+  "name": "caldo de marrano",
+  "price": 300.2,
+  "description": "caldo de marrano"
+}
+
+### Read all products
+GET {{URL}}/products
+
+
+### Read one product
+GET {{URL}}/products/115
+
+### Update one product
+PUT {{URL}}/products/53
+Content-Type: application/json
+
+{
+  "id": 53,
+  "name": "tacos c",
+  "price": 260.50,
+  "description": "Tacos de cecina con guacamole"
+}
+
+### Delete one product
+DELETE  {{URL}}/products/153
