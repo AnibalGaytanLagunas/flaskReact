@@ -1,53 +1,179 @@
-from utils.db import mysql
-from exceptions.product_exceptions import *
+"""Acceso a datos para el recurso de productos."""
 
-def get_all_products():    
-    cursor = mysql.connection.cursor()
-    cursor.execute("SELECT * FROM products")
-    products = cursor.fetchall()
-    columnas = [columna[0] for columna in cursor.description]
-    result = [
-        dict(zip(columnas, product))
-        for product in products
-    ]
-    cursor.close()
-    ##Forma desarrollada 
-    ##result_d = [{
-    ##  "id": product[0],
-    ##  "name": product[1],
-    ##  "price": product[2],
-    ##  "description": product[3]
-    ##} for product in products ]              
-    ##fin forma desarrollada
-    return result
+import sys
+
+from utils.db import mysql
+
+
+def _close_cursor(cursor):
+    """Cierra el cursor sin ocultar una excepción original."""
+    if cursor is None:
+        return
+
+    try:
+        cursor.close()
+    except Exception:
+        if sys.exc_info()[0] is None:
+            raise
+
+
+def _rollback_preserving_error(connection):
+    """Intenta revertir la transacción sin ocultar el error original."""
+    try:
+        connection.rollback()
+    except Exception:
+        pass
+
+
+def get_all_products():
+    cursor = None
+
+    try:
+        cursor = mysql.connection.cursor()
+        cursor.execute("SELECT * FROM products")
+
+        products = cursor.fetchall()
+        columns = [column[0] for column in cursor.description]
+
+        return [
+            dict(zip(columns, product))
+            for product in products
+        ]
+    finally:
+        _close_cursor(cursor)
 
 
 def create_product(name, price, description):
-    cursor = mysql.connection.cursor()
-    cursor.execute("INSERT INTO products(name, price, description)VALUES (%s, %s, %s)", (name, price, description))
-    mysql.connection.commit()
-    product_id = cursor.lastrowid
-    cursor.close()
-    return product_id
+    connection = mysql.connection
+    cursor = None
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            INSERT INTO products (name, price, description)
+            VALUES (%s, %s, %s)
+            """,
+            (name, price, description),
+        )
+
+        product_id = cursor.lastrowid
+        connection.commit()
+        return product_id
+
+    except Exception:
+        _rollback_preserving_error(connection)
+        raise
+
+    finally:
+        _close_cursor(cursor)
 
 
 def get_product_by_id(product_id):
-    cursor = mysql.connection.cursor()
-    cursor.execute("SELECT * FROM products WHERE id = %s",(product_id,))
-    product = cursor.fetchone()
-    cursor.close()
-    return product
+    cursor = None
+
+    try:
+        cursor = mysql.connection.cursor()
+        cursor.execute(
+            "SELECT * FROM products WHERE id = %s",
+            (product_id,),
+        )
+        return cursor.fetchone()
+
+    finally:
+        _close_cursor(cursor)
 
 
 def update_product(product_id, name, price, description):
-    cursor = mysql.connection.cursor()
-    cursor.execute( " UPDATE products SET name = %s, price = %s, description = %s WHERE id = %s", (name, price, description, product_id))
-    mysql.connection.commit()
-    cursor.close()
+    """
+    Actualiza un producto dentro de una única transacción.
+
+    SELECT ... FOR UPDATE bloquea la fila hasta el commit/rollback,
+    evitando que otro proceso elimine o modifique el producto entre
+    la comprobación de existencia y el UPDATE.
+    """
+    connection = mysql.connection
+    cursor = None
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            SELECT id
+            FROM products
+            WHERE id = %s
+            FOR UPDATE
+            """,
+            (product_id,),
+        )
+
+        product = cursor.fetchone()
+
+        if product is None:
+            connection.rollback()
+            return False
+
+        cursor.execute(
+            """
+            UPDATE products
+            SET name = %s,
+                price = %s,
+                description = %s
+            WHERE id = %s
+            """,
+            (name, price, description, product_id),
+        )
+
+        connection.commit()
+        return True
+
+    except Exception:
+        _rollback_preserving_error(connection)
+        raise
+
+    finally:
+        _close_cursor(cursor)
 
 
 def delete_product(product_id):
-    cursor = mysql.connection.cursor()
-    cursor.execute("DELETE FROM products WHERE id = %s", (product_id,))
-    mysql.connection.commit()
-    cursor.close()
+    """
+    Elimina un producto dentro de una única transacción.
+
+    SELECT ... FOR UPDATE garantiza que la comprobación de existencia
+    y el DELETE formen parte de la misma unidad transaccional.
+    """
+    connection = mysql.connection
+    cursor = None
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            SELECT id
+            FROM products
+            WHERE id = %s
+            FOR UPDATE
+            """,
+            (product_id,),
+        )
+
+        product = cursor.fetchone()
+
+        if product is None:
+            connection.rollback()
+            return False
+
+        cursor.execute(
+            "DELETE FROM products WHERE id = %s",
+            (product_id,),
+        )
+
+        connection.commit()
+        return True
+
+    except Exception:
+        _rollback_preserving_error(connection)
+        raise
+
+    finally:
+        _close_cursor(cursor)
