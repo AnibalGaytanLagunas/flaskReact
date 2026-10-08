@@ -82,19 +82,19 @@ def service_update_product(product_id, name, price, description):
     description = description.strip()
 
     try:
-        existing_product = product_repository.get_product_by_id(product_id)
-    except Exception as error:
-        raise ProductError("No fue posible consultar el producto") from error
-
-    if existing_product is None:
-        raise ProductNotFoundError(product_id)
-
-    try:
-        product_repository.update_product(product_id, name, price, description)
+        updated = product_repository.update_product(
+            product_id,
+            name,
+            price,
+            description,
+        )
     except ProductAlreadyExistsError:
         raise
     except Exception as error:
         raise ProductUpdateError() from error
+
+    if not updated:
+        raise ProductNotFoundError(product_id)
 
     return {
         "id": product_id,
@@ -106,15 +106,11 @@ def service_update_product(product_id, name, price, description):
 
 def service_delete_product(product_id):
     try:
-        product = product_repository.get_product_by_id(product_id)
-    except Exception as error:
-        raise ProductError("No fue posible consultar el producto") from error
-
-    if product is None:
-        raise ProductNotFoundError(product_id)
-
-    try:
-        product_repository.delete_product(product_id)
+        deleted = product_repository.delete_product(product_id)
     except Exception as error:
         raise ProductDeleteError() from error
+
+    if not deleted:
+        raise ProductNotFoundError(product_id)
+
     return product_id
