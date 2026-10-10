@@ -5,9 +5,9 @@ POST {{URL}}/products
 Content-Type: application/json
 
 {
-  "name": "caldo de marrano",
+  "name": "Tiritas de pescado",
   "price": 300.2,
-  "description": "caldo de marrano"
+  "description": "Tiritas de pescado en limon"
 }
 
 ### Read all products
@@ -15,18 +15,17 @@ GET {{URL}}/products
 
 
 ### Read one product
-GET {{URL}}/products/115
+GET {{URL}}/products/17
 
 ### Update one product
-PUT {{URL}}/products/53
+PUT {{URL}}/products/17
 Content-Type: application/json
 
 {
-  "id": 53,
   "name": "tacos c",
   "price": 260.50,
   "description": "Tacos de cecina con guacamole"
 }
 
 ### Delete one product
-DELETE  {{URL}}/products/153
+DELETE  {{URL}}/products/17
