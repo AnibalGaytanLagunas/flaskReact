@@ -36,9 +36,7 @@ def test_create_product_rejects_malformed_json(client):
     )
 
     assert response.status_code == 400
-    assert response.get_json() == {
-        "error": "Solicitud incorrecta o JSON inválido"
-    }
+    assert response.get_json() == {"error": "Solicitud incorrecta o JSON inválido"}
 
 
 def test_create_product_requires_json_content_type(client):

@@ -8,9 +8,11 @@ from app import create_app
 from config import TestingConfig
 from utils.db import mysql
 
-
 RUN_DB_INTEGRATION = os.getenv("RUN_DB_INTEGRATION", "").strip().lower() in (
-    "1", "true", "yes", "on"
+    "1",
+    "true",
+    "yes",
+    "on",
 )
 
 pytestmark = pytest.mark.integration
@@ -29,9 +31,7 @@ def integration_app():
     )
     missing = [variable for variable in required if not os.getenv(variable)]
     if missing:
-        pytest.skip(
-            "Faltan variables para integración MySQL: " + ", ".join(missing)
-        )
+        pytest.skip("Faltan variables para integración MySQL: " + ", ".join(missing))
 
     class IntegrationConfig(TestingConfig):
         SECRET_KEY = os.getenv("TEST_SECRET_KEY", "integration-test-secret")

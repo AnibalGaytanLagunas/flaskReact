@@ -3,11 +3,10 @@ import os
 from flask import Flask
 
 from config import Config, DevelopmentConfig, TestingConfig
-from routes.products_routes import api_bp
-from routes.admin_routes import admin_bp
-from utils.db import mysql
 from error_handlers import register_error_handlers
-
+from routes.admin_routes import admin_bp
+from routes.products_routes import api_bp
+from utils.db import mysql
 
 CONFIGS = {
     "production": Config,
@@ -24,9 +23,7 @@ def create_app(config_object=None):
         config_object = CONFIGS.get(environment)
 
         if config_object is None:
-            raise RuntimeError(
-                f"APP_ENV no reconocido: {environment}"
-            )
+            raise RuntimeError(f"APP_ENV no reconocido: {environment}")
 
     app.config.from_object(config_object)
 

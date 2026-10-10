@@ -27,15 +27,11 @@ class Config:
             "MYSQL_DB",
         )
 
-        missing = [
-            key for key in required
-            if not config.get(key)
-        ]
+        missing = [key for key in required if not config.get(key)]
 
         if missing:
             raise RuntimeError(
-                "Faltan variables de configuración: "
-                + ", ".join(missing)
+                "Faltan variables de configuración: " + ", ".join(missing)
             )
 
         port = config.get("MYSQL_PORT")
@@ -45,9 +41,11 @@ class Config:
 
 
 class DevelopmentConfig(Config):
-    DEBUG = (
-        os.getenv("FLASK_DEBUG", "false").strip().lower()
-        in ("1", "true", "yes", "on")
+    DEBUG = os.getenv("FLASK_DEBUG", "false").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
     )
 
 

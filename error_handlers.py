@@ -66,7 +66,9 @@ def register_error_handlers(app):
 
     @app.errorhandler(UnsupportedMediaType)
     def handle_unsupported_media_type(error):
-        return jsonify({"error": "El contenido debe enviarse como application/json"}), 415
+        return jsonify(
+            {"error": "El contenido debe enviarse como application/json"}
+        ), 415
 
     @app.errorhandler(HTTPException)
     def handle_http_exception(error):

@@ -82,9 +82,7 @@ def test_get_product_by_id_not_found(client, monkeypatch):
     response = client.get("/products/999")
 
     assert response.status_code == 404
-    assert response.get_json() == {
-        "error": "El producto con id 999 no existe"
-    }
+    assert response.get_json() == {"error": "El producto con id 999 no existe"}
 
 
 def test_update_product_success(client, monkeypatch):

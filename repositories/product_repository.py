@@ -40,10 +40,7 @@ def get_all_products():
         products = cursor.fetchall()
         columns = [column[0] for column in cursor.description]
 
-        return [
-            dict(zip(columns, product))
-            for product in products
-        ]
+        return [dict(zip(columns, product)) for product in products]
     finally:
         _close_cursor(cursor)
 

@@ -27,12 +27,14 @@ def test_get_all_products_returns_dictionaries(db):
 
     result = product_repository.get_all_products()
 
-    assert result == [{
-        "id": 1,
-        "name": "Tacos",
-        "price": 50.0,
-        "description": "Tacos de cecina",
-    }]
+    assert result == [
+        {
+            "id": 1,
+            "name": "Tacos",
+            "price": 50.0,
+            "description": "Tacos de cecina",
+        }
+    ]
     cursor.close.assert_called_once()
 
 
@@ -88,9 +90,7 @@ def test_update_product_locks_row_and_commits(db):
     connection, cursor = db
     cursor.fetchone.return_value = (5,)
 
-    result = product_repository.update_product(
-        5, "Tacos", 50.0, "Tacos de cecina"
-    )
+    result = product_repository.update_product(5, "Tacos", 50.0, "Tacos de cecina")
 
     assert result is True
     assert cursor.execute.call_count == 2
@@ -112,9 +112,7 @@ def test_update_product_returns_false_when_product_does_not_exist(db):
     connection, cursor = db
     cursor.fetchone.return_value = None
 
-    result = product_repository.update_product(
-        5, "Tacos", 50.0, "Tacos de cecina"
-    )
+    result = product_repository.update_product(5, "Tacos", 50.0, "Tacos de cecina")
 
     assert result is False
     assert cursor.execute.call_count == 1
@@ -129,9 +127,7 @@ def test_update_product_rolls_back_on_error(db):
     cursor.execute.side_effect = [None, RuntimeError("Error SQL")]
 
     with pytest.raises(RuntimeError, match="Error SQL"):
-        product_repository.update_product(
-            5, "Tacos", 50.0, "Tacos de cecina"
-        )
+        product_repository.update_product(5, "Tacos", 50.0, "Tacos de cecina")
 
     connection.rollback.assert_called_once()
     connection.commit.assert_not_called()

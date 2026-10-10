@@ -1,6 +1,5 @@
 """Reglas de negocio para operaciones de productos."""
 
-from repositories import product_repository
 from exceptions.product_exceptions import (
     ProductAlreadyExistsError,
     ProductCreationError,
@@ -10,6 +9,7 @@ from exceptions.product_exceptions import (
     ProductUpdateError,
     ProductValidationError,
 )
+from repositories import product_repository
 
 
 def _validate_product(name, price, description):
