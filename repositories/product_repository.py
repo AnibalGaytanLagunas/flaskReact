@@ -10,10 +10,15 @@ def _close_cursor(cursor):
     if cursor is None:
         return
 
+    # Capturar el estado antes de llamar a close(): dentro del except de
+    # cursor.close(), sys.exc_info() reflejaría el error de cierre, no el
+    # error que pudiera estar propagándose desde la operación principal.
+    preserve_error = sys.exc_info()[0] is not None
+
     try:
         cursor.close()
     except Exception:
-        if sys.exc_info()[0] is None:
+        if not preserve_error:
             raise
 
 
