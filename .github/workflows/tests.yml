@@ -1,4 +1,3 @@
-
 name: Backend CI
 
 on:
@@ -15,7 +14,7 @@ permissions:
 
 jobs:
   tests:
-    name: Pruebas automatizadas
+    name: Pruebas automatizadas y calidad
     runs-on: ubuntu-latest
 
     steps:
@@ -43,7 +42,19 @@ jobs:
             Flask-MySQLdb \
             python-dotenv \
             "pydantic>=2,<3" \
-            pytest
+            pytest \
+            ruff
+
+      - name: Revisar linting
+        run: python -m ruff check .
+
+      - name: Verificar formato
+        run: >-
+          python -m ruff format --check
+          routes/products_routes.py
+          tests/test_product_routes.py
+          tests/test_product_service.py
+          tests/test_product_validation.py
 
       - name: Ejecutar pruebas unitarias
         run: python -m pytest -q
