@@ -70,7 +70,12 @@ def register_error_handlers(app):
 
     @app.errorhandler(HTTPException)
     def handle_http_exception(error):
-        return jsonify({"error": error.name}), error.code
+        if error.code == 404:
+            message = "Endpoint no encontrado"
+        else:
+            message = error.name
+
+        return jsonify({"error": message}), error.code
 
     @app.errorhandler(500)
     def handle_internal_server_error(error):
