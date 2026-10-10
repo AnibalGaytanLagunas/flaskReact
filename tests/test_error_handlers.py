@@ -129,7 +129,7 @@ def test_product_creation_error(client, monkeypatch):
     assert response.status_code == 500
 
     assert response.get_json() == {
-        "error": "Error al crear el producto"
+        "error": "No fue posible crear el producto"
     }
 
 
@@ -167,7 +167,7 @@ def test_product_update_error(client, monkeypatch):
     assert response.status_code == 500
 
     assert response.get_json() == {
-        "error": "Error al actualizar el producto"
+        "error": "No fue posible actualizar el producto"
     }
 
 
@@ -193,7 +193,7 @@ def test_product_delete_error(client, monkeypatch):
     assert response.status_code == 500
 
     assert response.get_json() == {
-        "error": "Error al eliminar el producto"
+        "error": "No fue posible eliminar el producto"
     }
 
 
@@ -219,7 +219,7 @@ def test_product_error(client, monkeypatch):
     assert response.status_code == 500
 
     assert response.get_json() == {
-        "error": "Error general de producto"
+        "error": "Error al procesar la operación de productos"
     }
 
 
