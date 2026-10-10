@@ -4,7 +4,12 @@ from unittest.mock import Mock
 
 import pytest
 
-from exceptions.product_exceptions import ProductNotFoundError
+from exceptions.product_exceptions import (
+    ProductCreationError,
+    ProductDeleteError,
+    ProductNotFoundError,
+    ProductUpdateError,
+)
 from services import product_service
 
 
@@ -57,3 +62,39 @@ def test_service_delete_product_raises_not_found(monkeypatch):
 
     with pytest.raises(ProductNotFoundError):
         product_service.service_delete_product(999)
+
+
+def test_service_create_product_wraps_repository_error(monkeypatch):
+    repository = Mock()
+    original_error = RuntimeError("database unavailable")
+    repository.create_product.side_effect = original_error
+    monkeypatch.setattr(product_service, "product_repository", repository)
+
+    with pytest.raises(ProductCreationError) as error:
+        product_service.service_create_product("Tacos", 50, "Cecina")
+
+    assert error.value.__cause__ is original_error
+
+
+def test_service_update_product_wraps_repository_error(monkeypatch):
+    repository = Mock()
+    original_error = RuntimeError("database unavailable")
+    repository.update_product.side_effect = original_error
+    monkeypatch.setattr(product_service, "product_repository", repository)
+
+    with pytest.raises(ProductUpdateError) as error:
+        product_service.service_update_product(5, "Tacos", 50, "Cecina")
+
+    assert error.value.__cause__ is original_error
+
+
+def test_service_delete_product_wraps_repository_error(monkeypatch):
+    repository = Mock()
+    original_error = RuntimeError("database unavailable")
+    repository.delete_product.side_effect = original_error
+    monkeypatch.setattr(product_service, "product_repository", repository)
+
+    with pytest.raises(ProductDeleteError) as error:
+        product_service.service_delete_product(5)
+
+    assert error.value.__cause__ is original_error
