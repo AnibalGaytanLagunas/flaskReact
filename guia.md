@@ -50,6 +50,10 @@ pip install flask, flask-mysqldb, python-dotenv, pydantic, pytest
 
 `python -m pytest`
 
+Orden de pruebas
+pytest -q tests/test_product_repository.py
+pytest -q
+
 ### Ejecutar proyecto flask
 
 `python index.py`
@@ -108,22 +112,19 @@ no olvidar configurar phpMyAdmin con el nuevo password de root/mysql
 `git remote add origin https://github.com/AnibalGaytanLagunas/flaskReact.git`
 `git push -u origin main`
 
-# errores sutiles que me dieron lata
+deshacer cambios en un proyecto que no ha ejecutado `git add .`
+Usar:
+ `git restore .`  recuperas todos los archivos y líneas borradas
 
-app.config[MYSQL_PORT] = MYSQL_PORT
-nunca poner en comillas  [MYSQL_PORT]  ya que es un int
+
+
+descarga las actualizaciones
+`git pull https://github.com/AnibalGaytanLagunas/flaskReact.git main`
+
+El repositorio local tiene un repositorio remoto vinculado.
+Confirma esto ejecutando `git remote -v`
+
 
 ### Extenciones VSC
 - REST Client (Huachao Mao)
 - python (Microsoft)
-
-
-
-,
-    "css.validate": false,
-    "less.validate": false,
-    "scss.validate": false
-
-
-
-    https://www.youtube.com/watch?v=D1W8H4Rkb9A&list=PLo5lAe9kQrwpTzAbpFsCjwDb0ImeMypEa&index=7
