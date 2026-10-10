@@ -1,9 +1,7 @@
 """Rutas HTTP para el recurso de productos."""
 
 from flask import Blueprint, jsonify, request
-from pydantic import ValidationError
 
-from exceptions.product_exceptions import ProductValidationError
 from schemas.product_schema import (
     ProductCreateSchema,
     ProductResponseSchema,
