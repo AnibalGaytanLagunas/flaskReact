@@ -1,8 +1,6 @@
 """Pruebas de las rutas administrativas deshabilitadas."""
 
-AUTH_UNAVAILABLE_MESSAGE = (
-    "Ruta deshabilitada hasta implementar autenticación"
-)
+AUTH_UNAVAILABLE_MESSAGE = "Ruta deshabilitada hasta implementar autenticación"
 
 
 def test_admin_dashboard_is_unavailable(client):

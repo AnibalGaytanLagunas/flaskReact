@@ -2,9 +2,7 @@ from flask import Blueprint, jsonify
 
 admin_bp = Blueprint("admin", __name__)
 
-AUTH_UNAVAILABLE_MESSAGE = (
-    "Ruta deshabilitada hasta implementar autenticación"
-)
+AUTH_UNAVAILABLE_MESSAGE = "Ruta deshabilitada hasta implementar autenticación"
 
 
 @admin_bp.route("/admin")
