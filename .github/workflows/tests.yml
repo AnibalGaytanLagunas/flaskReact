@@ -16,6 +16,27 @@ jobs:
   tests:
     name: Pruebas automatizadas y calidad
     runs-on: ubuntu-latest
+    env:
+      RUN_DB_INTEGRATION: "1"
+      TEST_MYSQL_HOST: 127.0.0.1
+      TEST_MYSQL_PORT: "3306"
+      TEST_MYSQL_USER: root
+      TEST_MYSQL_PASSWORD: root1234
+      TEST_MYSQL_DATABASE: restaurantdb
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root1234
+          MYSQL_DATABASE: restaurantdb
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -p$MYSQL_ROOT_PASSWORD"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
 
     steps:
       - name: Descargar repositorio
@@ -32,7 +53,8 @@ jobs:
           sudo apt-get install -y \
             build-essential \
             pkg-config \
-            default-libmysqlclient-dev
+            default-libmysqlclient-dev \
+            default-mysql-client
 
       - name: Instalar dependencias de Python
         run: |
@@ -45,6 +67,15 @@ jobs:
             pytest \
             ruff
 
+      - name: Inicializar base de datos de pruebas
+        run: |
+          MYSQL_PWD="$TEST_MYSQL_PASSWORD" mysql \
+            --protocol=TCP \
+            --host="$TEST_MYSQL_HOST" \
+            --port="$TEST_MYSQL_PORT" \
+            --user="$TEST_MYSQL_USER" \
+            < utils/createdb.sql
+
       - name: Revisar linting
         run: python -m ruff check .
 
@@ -56,5 +87,5 @@ jobs:
           tests/test_product_service.py
           tests/test_product_validation.py
 
-      - name: Ejecutar pruebas unitarias
+      - name: Ejecutar pruebas unitarias y de integración
         run: python -m pytest -q
