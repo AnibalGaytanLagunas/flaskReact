@@ -40,7 +40,6 @@ def test_http_not_found(client):
 
 
 def test_product_not_found(client, monkeypatch):
-
     def mock_get_product(product_id):
         raise ProductNotFoundError("Producto no encontrado")
 
@@ -57,7 +56,6 @@ def test_product_not_found(client, monkeypatch):
 
 
 def test_product_already_exists(client, monkeypatch):
-
     def mock_create_product(name, price, description):
         raise ProductAlreadyExistsError("El producto ya existe")
 
@@ -79,7 +77,6 @@ def test_product_already_exists(client, monkeypatch):
 
 
 def test_product_creation_error(client, monkeypatch):
-
     def mock_create_product(name, price, description):
         raise ProductCreationError("Error al crear el producto")
 
@@ -101,7 +98,6 @@ def test_product_creation_error(client, monkeypatch):
 
 
 def test_product_update_error(client, monkeypatch):
-
     def mock_update_product(product_id, name, price, description):
         raise ProductUpdateError("Error al actualizar el producto")
 
@@ -127,7 +123,6 @@ def test_product_update_error(client, monkeypatch):
 
 
 def test_product_delete_error(client, monkeypatch):
-
     def mock_delete_product(product_id):
         raise ProductDeleteError("Error al eliminar el producto")
 
@@ -146,7 +141,6 @@ def test_product_delete_error(client, monkeypatch):
 
 
 def test_product_error(client, monkeypatch):
-
     def mock_get_all_products():
         raise ProductError("Error general de producto")
 
@@ -169,9 +163,10 @@ def test_product_error(client, monkeypatch):
 
 
 def test_unexpected_error(client, monkeypatch):
+    internal_details = "password=secret SELECT * FROM products /srv/private/app.py"
 
     def mock_get_all_products():
-        raise Exception("Error inesperado")
+        raise RuntimeError(internal_details)
 
     monkeypatch.setattr(
         product_service, "service_get_all_products", mock_get_all_products
@@ -180,5 +175,5 @@ def test_unexpected_error(client, monkeypatch):
     response = client.get("/products")
 
     assert response.status_code == 500
-
     assert response.get_json() == {"error": "Error interno del servidor"}
+    assert internal_details not in response.get_data(as_text=True)

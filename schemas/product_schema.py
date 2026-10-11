@@ -6,9 +6,9 @@ from pydantic import BaseModel, ConfigDict, Field
 class ProductInputSchema(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
 
-    name: str = Field(min_length=1)
-    price: float = Field(gt=0, allow_inf_nan=False)
-    description: str = Field(min_length=1)
+    name: str = Field(min_length=1, max_length=30)
+    price: float = Field(gt=0, le=99999999.99, allow_inf_nan=False)
+    description: str = Field(min_length=1, max_length=255)
 
 
 class ProductCreateSchema(ProductInputSchema):

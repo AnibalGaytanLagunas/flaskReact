@@ -16,6 +16,7 @@ class Config:
 
     DEBUG = False
     TESTING = False
+    MAX_CONTENT_LENGTH = 16 * 1024
 
     @classmethod
     def validate(cls, config):

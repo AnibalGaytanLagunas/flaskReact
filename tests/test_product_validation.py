@@ -8,10 +8,15 @@ import pytest
     [
         {"name": "", "price": 10, "description": "Válido"},
         {"name": "   ", "price": 10, "description": "Válido"},
+        {"name": "N" * 31, "price": 10, "description": "Válido"},
         {"name": "Tacos", "price": 0, "description": "Válido"},
         {"name": "Tacos", "price": -1, "description": "Válido"},
         {"name": "Tacos", "price": "no-numérico", "description": "Válido"},
+        {"name": "Tacos", "price": "NaN", "description": "Válido"},
+        {"name": "Tacos", "price": "Infinity", "description": "Válido"},
+        {"name": "Tacos", "price": 100000000, "description": "Válido"},
         {"name": "Tacos", "price": 10, "description": ""},
+        {"name": "Tacos", "price": 10, "description": "D" * 256},
         {"name": "Tacos", "price": 10},
         {
             "name": "Tacos",
@@ -59,3 +64,16 @@ def test_update_product_requires_all_fields(client):
 
     assert response.status_code == 400
     assert response.get_json()["error"] == "Datos inválidos"
+
+
+def test_create_product_rejects_request_body_over_limit(client):
+    response = client.post(
+        "/products",
+        data=b"x" * (16 * 1024 + 1),
+        content_type="application/json",
+    )
+
+    assert response.status_code == 413
+    assert response.get_json() == {
+        "error": "El cuerpo de la solicitud excede el tamaño permitido"
+    }
