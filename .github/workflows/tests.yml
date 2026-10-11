@@ -80,12 +80,7 @@ jobs:
         run: python -m ruff check .
 
       - name: Verificar formato
-        run: >-
-          python -m ruff format --check
-          routes/products_routes.py
-          tests/test_product_routes.py
-          tests/test_product_service.py
-          tests/test_product_validation.py
+        run: python -m ruff format --check .
 
       - name: Ejecutar pruebas unitarias y de integración
         run: python -m pytest -q

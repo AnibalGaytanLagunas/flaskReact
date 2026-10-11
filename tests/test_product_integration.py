@@ -6,6 +6,7 @@ import pytest
 
 from app import create_app
 from config import TestingConfig
+from repositories import product_repository
 from utils.db import mysql
 
 RUN_DB_INTEGRATION = os.getenv("RUN_DB_INTEGRATION", "").strip().lower() in (
@@ -53,38 +54,27 @@ def integration_client(integration_app):
 
 
 @pytest.fixture
-def product_id(integration_app):
-    with integration_app.app_context():
-        cursor = mysql.connection.cursor()
-        try:
-            cursor.execute(
-                """
-                INSERT INTO products (name, price, description)
-                VALUES (%s, %s, %s)
-                """,
-                (
-                    "Producto de integración",
-                    100.0,
-                    "Producto creado para pruebas",
-                ),
-            )
-            mysql.connection.commit()
-            product_id = cursor.lastrowid
-        finally:
-            cursor.close()
-
-    yield product_id
+def cleanup_products(integration_app):
+    """Elimina al finalizar únicamente los productos registrados por el test."""
+    product_ids = []
+    yield product_ids.append
 
     with integration_app.app_context():
-        cursor = mysql.connection.cursor()
-        try:
-            cursor.execute(
-                "DELETE FROM products WHERE id = %s",
-                (product_id,),
-            )
-            mysql.connection.commit()
-        finally:
-            cursor.close()
+        for product_id in product_ids:
+            product_repository.delete_product(product_id)
+
+
+@pytest.fixture
+def product_id(integration_app, cleanup_products):
+    with integration_app.app_context():
+        product_id = product_repository.create_product(
+            "Producto de integración",
+            100.0,
+            "Producto creado para pruebas",
+        )
+
+    cleanup_products(product_id)
+    return product_id
 
 
 def test_update_product_integration(integration_client, product_id):
@@ -114,8 +104,7 @@ def test_delete_product_integration(integration_client, product_id):
     assert get_response.status_code == 404
 
 
-    
-def test_create_product_integration(integration_client):
+def test_create_product_integration(integration_client, cleanup_products):
     product_name = "Producto integración"
 
     response = integration_client.post(
@@ -130,16 +119,12 @@ def test_create_product_integration(integration_client):
     assert response.status_code == 201
     data = response.get_json()
     assert data["id"]
+    cleanup_products(data["id"])
     assert data["name"] == product_name
 
-    product_id = data["id"]
-    try:
-        get_response = integration_client.get(f"/products/{product_id}")
-        assert get_response.status_code == 200
-        assert get_response.get_json()["name"] == product_name
-    finally:
-        delete_response = integration_client.delete(f"/products/{product_id}")
-        assert delete_response.status_code == 200
+    get_response = integration_client.get(f"/products/{data['id']}")
+    assert get_response.status_code == 200
+    assert get_response.get_json()["name"] == product_name
 
 
 def test_products_table_uses_innodb(integration_app):
