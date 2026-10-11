@@ -1,12 +1,15 @@
 """Acceso a datos para el recurso de productos."""
 
+import logging
 import sys
 
 from utils.db import mysql
 
+logger = logging.getLogger(__name__)
 
-def _close_cursor(cursor):
-    """Cierra el cursor sin ocultar una excepción original."""
+
+def _close_cursor(cursor, committed=False):
+    """Cierra el cursor sin ocultar errores previos ni fallos tras commit."""
     if cursor is None:
         return
 
@@ -18,7 +21,8 @@ def _close_cursor(cursor):
     try:
         cursor.close()
     except Exception:
-        if not preserve_error:
+        logger.exception("No se pudo cerrar el cursor de MySQL")
+        if not preserve_error and not committed:
             raise
 
 
@@ -27,7 +31,7 @@ def _rollback_preserving_error(connection):
     try:
         connection.rollback()
     except Exception:
-        pass
+        logger.exception("Falló el rollback de la transacción MySQL")
 
 
 def get_all_products():
@@ -48,6 +52,7 @@ def get_all_products():
 def create_product(name, price, description):
     connection = mysql.connection
     cursor = None
+    committed = False
 
     try:
         cursor = connection.cursor()
@@ -61,6 +66,7 @@ def create_product(name, price, description):
 
         product_id = cursor.lastrowid
         connection.commit()
+        committed = True
         return product_id
 
     except Exception:
@@ -68,7 +74,7 @@ def create_product(name, price, description):
         raise
 
     finally:
-        _close_cursor(cursor)
+        _close_cursor(cursor, committed=committed)
 
 
 def get_product_by_id(product_id):
@@ -96,6 +102,7 @@ def update_product(product_id, name, price, description):
     """
     connection = mysql.connection
     cursor = None
+    committed = False
 
     try:
         cursor = connection.cursor()
@@ -127,6 +134,7 @@ def update_product(product_id, name, price, description):
         )
 
         connection.commit()
+        committed = True
         return True
 
     except Exception:
@@ -134,7 +142,7 @@ def update_product(product_id, name, price, description):
         raise
 
     finally:
-        _close_cursor(cursor)
+        _close_cursor(cursor, committed=committed)
 
 
 def delete_product(product_id):
@@ -146,6 +154,7 @@ def delete_product(product_id):
     """
     connection = mysql.connection
     cursor = None
+    committed = False
 
     try:
         cursor = connection.cursor()
@@ -171,6 +180,7 @@ def delete_product(product_id):
         )
 
         connection.commit()
+        committed = True
         return True
 
     except Exception:
@@ -178,4 +188,4 @@ def delete_product(product_id):
         raise
 
     finally:
-        _close_cursor(cursor)
+        _close_cursor(cursor, committed=committed)

@@ -208,3 +208,69 @@ def test_cursor_close_error_is_propagated_without_active_exception(db):
 
     with pytest.raises(RuntimeError, match="Error close"):
         product_repository.get_all_products()
+
+
+    
+def test_create_product_preserves_commit_error_if_rollback_and_close_fail(db):
+    connection, cursor = db
+    cursor.lastrowid = 12
+    connection.commit.side_effect = RuntimeError("Error commit")
+    connection.rollback.side_effect = RuntimeError("Error rollback")
+    cursor.close.side_effect = RuntimeError("Error close")
+
+    with pytest.raises(RuntimeError, match="Error commit"):
+        product_repository.create_product("Tacos", 50.0, "Tacos de cecina")
+
+    connection.rollback.assert_called_once()
+    cursor.close.assert_called_once()
+
+
+def test_create_product_does_not_report_failure_if_cursor_close_fails_after_commit(
+    db, caplog
+):
+    connection, cursor = db
+    cursor.lastrowid = 12
+    cursor.close.side_effect = RuntimeError("Error close")
+
+    result = product_repository.create_product("Tacos", 50.0, "Tacos de cecina")
+
+    assert result == 12
+    connection.commit.assert_called_once()
+    connection.rollback.assert_not_called()
+    assert "No se pudo cerrar el cursor de MySQL" in caplog.text
+
+
+def test_update_product_rolls_back_if_commit_fails(db):
+    connection, cursor = db
+    cursor.fetchone.return_value = (5,)
+    connection.commit.side_effect = RuntimeError("Error commit")
+
+    with pytest.raises(RuntimeError, match="Error commit"):
+        product_repository.update_product(5, "Tacos", 50.0, "Tacos de cecina")
+
+    connection.rollback.assert_called_once()
+    cursor.close.assert_called_once()
+
+
+def test_delete_product_rolls_back_if_commit_fails(db):
+    connection, cursor = db
+    cursor.fetchone.return_value = (5,)
+    connection.commit.side_effect = RuntimeError("Error commit")
+
+    with pytest.raises(RuntimeError, match="Error commit"):
+        product_repository.delete_product(5)
+
+    connection.rollback.assert_called_once()
+    cursor.close.assert_called_once()
+
+
+def test_rollback_failure_is_logged_without_replacing_original_error(db, caplog):
+    connection, cursor = db
+    cursor.execute.side_effect = RuntimeError("Error SQL")
+    connection.rollback.side_effect = RuntimeError("Error rollback")
+
+    with pytest.raises(RuntimeError, match="Error SQL"):
+        product_repository.create_product("Tacos", 50.0, "Tacos de cecina")
+
+    assert "Falló el rollback de la transacción MySQL" in caplog.text
+    cursor.close.assert_called_once()

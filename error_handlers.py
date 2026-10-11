@@ -42,22 +42,22 @@ def register_error_handlers(app):
 
     @app.errorhandler(ProductCreationError)
     def handle_product_creation_error(error):
-        app.logger.error("No se pudo crear el producto: %s", error)
+        app.logger.exception("No se pudo crear el producto")
         return jsonify({"error": "No fue posible crear el producto"}), 500
 
     @app.errorhandler(ProductUpdateError)
     def handle_product_update_error(error):
-        app.logger.error("No se pudo actualizar el producto: %s", error)
+        app.logger.exception("No se pudo actualizar el producto")
         return jsonify({"error": "No fue posible actualizar el producto"}), 500
 
     @app.errorhandler(ProductDeleteError)
     def handle_product_delete_error(error):
-        app.logger.error("No se pudo eliminar el producto: %s", error)
+        app.logger.exception("No se pudo eliminar el producto")
         return jsonify({"error": "No fue posible eliminar el producto"}), 500
 
     @app.errorhandler(ProductError)
     def handle_product_error(error):
-        app.logger.error("Error de servicio de productos: %s", error)
+        app.logger.exception("Error de servicio de productos")
         return jsonify({"error": "Error al procesar la operación de productos"}), 500
 
     @app.errorhandler(BadRequest)
@@ -81,5 +81,5 @@ def register_error_handlers(app):
 
     @app.errorhandler(500)
     def handle_internal_server_error(error):
-        app.logger.error("Error interno del servidor: %s", error)
+        app.logger.exception("Error interno del servidor")
         return jsonify({"error": "Error interno del servidor"}), 500

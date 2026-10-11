@@ -112,3 +112,50 @@ def test_delete_product_integration(integration_client, product_id):
 
     get_response = integration_client.get(f"/products/{product_id}")
     assert get_response.status_code == 404
+
+
+    
+def test_create_product_integration(integration_client):
+    response = integration_client.post(
+        "/products",
+        json={
+            "name": "Producto creado por integración",
+            "price": 123.45,
+            "description": "Verificación de persistencia",
+        },
+    )
+
+    assert response.status_code in (200, 201)
+    data = response.get_json()
+    assert data["id"]
+    assert data["name"] == "Producto creado por integración"
+
+    product_id = data["id"]
+    try:
+        get_response = integration_client.get("/products/" + str(product_id))
+        assert get_response.status_code == 200
+        assert get_response.get_json()["name"] == "Producto creado por integración"
+    finally:
+        delete_response = integration_client.delete("/products/" + str(product_id))
+        assert delete_response.status_code == 200
+
+
+def test_products_table_uses_innodb(integration_app):
+    with integration_app.app_context():
+        cursor = mysql.connection.cursor()
+        try:
+            cursor.execute(
+                """
+                SELECT ENGINE
+                FROM information_schema.TABLES
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = %s
+                """,
+                ("products",),
+            )
+            result = cursor.fetchone()
+        finally:
+            cursor.close()
+
+    assert result is not None
+    assert result[0].lower() == "innodb"
