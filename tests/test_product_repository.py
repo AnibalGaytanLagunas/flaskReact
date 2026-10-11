@@ -210,7 +210,6 @@ def test_cursor_close_error_is_propagated_without_active_exception(db):
         product_repository.get_all_products()
 
 
-
 def test_create_product_preserves_commit_error_if_rollback_and_close_fail(db):
     connection, cursor = db
     cursor.lastrowid = 12
