@@ -116,27 +116,29 @@ def test_delete_product_integration(integration_client, product_id):
 
     
 def test_create_product_integration(integration_client):
+    product_name = "Producto integración"
+
     response = integration_client.post(
         "/products",
         json={
-            "name": "Producto creado por integración",
+            "name": product_name,
             "price": 123.45,
             "description": "Verificación de persistencia",
         },
     )
 
-    assert response.status_code in (200, 201)
+    assert response.status_code == 201
     data = response.get_json()
     assert data["id"]
-    assert data["name"] == "Producto creado por integración"
+    assert data["name"] == product_name
 
     product_id = data["id"]
     try:
-        get_response = integration_client.get("/products/" + str(product_id))
+        get_response = integration_client.get(f"/products/{product_id}")
         assert get_response.status_code == 200
-        assert get_response.get_json()["name"] == "Producto creado por integración"
+        assert get_response.get_json()["name"] == product_name
     finally:
-        delete_response = integration_client.delete("/products/" + str(product_id))
+        delete_response = integration_client.delete(f"/products/{product_id}")
         assert delete_response.status_code == 200
 
 
