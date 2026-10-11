@@ -1,5 +1,7 @@
 -- insertar manualmente los comando en Mysql o investigar como automatizarlos
 
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'root1234';
+FLUSH PRIVILEGES;
 CREATE DATABASE IF NOT EXISTS restaurantdb;
 
 -- Seleccionar la base de datos
